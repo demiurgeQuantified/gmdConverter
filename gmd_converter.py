@@ -4,9 +4,9 @@ import struct
 import json
 from typing import BinaryIO
 
-SUPPORTED_VERSIONS = [195]
-"""List of supported world versions."""
-# TODO: a lot more versions than this are probably supported, gmd is a newer feature and may not have been changed ever
+MINIMUM_SUPPORTED_VERSION = 195
+"""The lowest supported world version."""
+# TODO: much lower versions than this are probably supported, gmd is a newer feature and may not have been changed ever
 
 
 JSON_WORLD_VERSION_KEY = "__WORLD_VERSION"
@@ -165,17 +165,18 @@ def write_table(file: BinaryIO, table: luaTable):
             raise Exception(f"Cannot write table value of type {type(value)} (Key : {key})")
 
 
-def from_bin(filepath: str) -> GlobalModData:
+def from_bin(filepath: str) -> GlobalModData | None:
     """
     Creates GlobalModData from a global mod data binary.
     :param filepath: Filepath of the binary to convert
-    :return: the GlobalModData in the file
+    :return: the GlobalModData in the file. None if the file is an unsupported version or cannot be read.
     """
     file = open(filepath, 'rb')
 
     world_version = read_int(file)
-    if world_version not in SUPPORTED_VERSIONS:
-        raise Exception(f"Unsupported world version {world_version}")
+    if world_version < MINIMUM_SUPPORTED_VERSION:
+        print(f"Unsupported world version {world_version}")
+        return None
     global_mod_data = GlobalModData(world_version)
 
     num_entries = read_int(file)
